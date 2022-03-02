@@ -1,0 +1,1 @@
+Service folder: store everything related with communication between FE & BE

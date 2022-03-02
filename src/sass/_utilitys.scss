@@ -1,0 +1,47 @@
+// Utility class
+.h-screen {
+  height: 100vh;
+  text-transform: none;
+}
+.b-red {
+  background-color: red;
+}
+
+.v-btn {
+  letter-spacing: 0;
+}
+
+.v-main {
+  height: 100vh;
+}
+
+.v-btn {
+  letter-spacing: 0px;
+}
+
+.layout-container-base {
+  width: 100%;
+  height: 100%;
+  background: #f0f0f4;
+  overflow: hidden;
+
+  .content-scrollable {
+    background: #f0f0f4;
+    padding-top: 0;
+    height: 100%;
+
+    height: calc(100% - #{$navbar-top-height});
+    background-color: #f0f0f4 !important;
+
+    &.dense {
+      height: calc(100% - #{$navbar-top-height});
+    }
+    > .container {
+      min-height: 100%;
+    }
+  }
+}
+.screen-container-base {
+  height: calc(100vh - #{$navbar-top-height});
+  text-transform: none;
+}

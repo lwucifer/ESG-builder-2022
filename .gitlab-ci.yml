@@ -1,0 +1,108 @@
+default:
+  retry:
+    max: 2
+    when: runner_system_failure
+
+stages:
+  - build
+  - publishArtifact
+  - code_analysis
+  - deploy
+
+build-dev:
+  stage: build
+  only:
+    - main
+  image:
+    name: node:14.18.0
+  script:
+    - yarn install
+    - yarn build-dev
+  artifacts:
+    paths:
+      - dist
+
+build-qa:
+  stage: build
+  only:
+    - main
+  image:
+    name: node:14.18.0
+  script:
+    - yarn install
+    - yarn build-qa
+  artifacts:
+    paths:
+      - dist
+
+code_analysis:
+  image:
+    name: sonarsource/sonar-scanner-cli
+  stage: code_analysis
+  script:
+    - sonar-scanner -Dsonar.host.url=$SONAR_HOST_URL -Dsonar.login=$SONAR_LOGIN
+
+publishDocker-dev:
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  stage: publishArtifact
+  only:
+    - main
+  dependencies:
+    - build-dev
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:dev-$CI_PIPELINE_ID
+
+publishDocker-qa:
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  stage: publishArtifact
+  only:
+    - main
+  dependencies:
+    - build-qa
+  script:
+    - echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context $CI_PROJECT_DIR --dockerfile $CI_PROJECT_DIR/Dockerfile --destination $CI_REGISTRY_IMAGE:qa-$CI_PIPELINE_ID
+
+deploy_dev:
+  stage: deploy
+  only:
+    - main
+  image:
+    name: diginex/ca:helm-3.2.0-gomplate
+  script:
+    - mkdir /root/.kube/
+    - echo $DEV2_KUBE_CONFIG | base64 -di > /root/.kube/config
+    - helm repo add harbor https://diginex.github.io/monochart
+    - helm repo update
+    - sed -e "s;__CI_PIPELINE_ID__;$CI_PIPELINE_ID;g" -e "s;__IMAGE_REPOSITORY_PASSWORD__;$IMAGE_REPOSITORY_PASSWORD;g" ./environments/dev.values.yaml > values.yaml
+    - helm upgrade framework-builder-admin-dev harbor/monochart --namespace trustesg-dev -f ./values.yaml --install
+  environment:
+    name: dev
+    url: https://framework-builder-admin.dev.dgnx.io
+    kubernetes:
+      namespace: trustesg-dev
+
+deploy_qa:
+  stage: deploy
+  only:
+    - main
+  image:
+    name: diginex/ca:helm-3.2.0-gomplate
+  script:
+    - mkdir /root/.kube/
+    - echo $DEV2_KUBE_CONFIG | base64 -di > /root/.kube/config
+    - helm repo add harbor https://diginex.github.io/monochart
+    - helm repo update
+    - sed -e "s;__CI_PIPELINE_ID__;$CI_PIPELINE_ID;g" -e "s;__IMAGE_REPOSITORY_PASSWORD__;$IMAGE_REPOSITORY_PASSWORD;g" ./environments/qa.values.yaml > values.yaml
+    - helm upgrade framework-builder-admin-qa harbor/monochart --namespace trustesg-qa -f ./values.yaml --install
+  environment:
+    name: qa
+    url: https://framework-builder-admin.qa.dgnx.io
+    kubernetes:
+      namespace: trustesg-qa
+  when: manual

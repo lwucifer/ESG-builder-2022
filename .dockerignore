@@ -1,0 +1,7 @@
+**/environments
+**/charts
+**/.git
+**/node_modules
+**/dist
+**/*.spec.ts
+**/*.e2e-spec.ts

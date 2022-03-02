@@ -1,0 +1,36 @@
+@import url("https://fonts.googleapis.com/css2?family=Mukta:wght@200;300;400;500;600;700;800&display=swap");
+$body-font-family: "Mukta", sans-serif;
+$btn-text-transform: none;
+$card-border-radius: 8px;
+
+//#region color
+$color-accent: #cc2531;
+$background-color: #f3f3f8;
+$yellow-color: yellow;
+
+$blue-3: #2b61f5;
+$green-1: #E8FCE8;
+$green-3: #01AA30;
+$text-3: #87879d;
+
+$white: #ffffff;
+$purple-4: #150a84;
+//#endregion
+
+//#region dimension
+$navbar-bottom-height: 60px;
+$drawer-width: 237px;
+$navbar-top-height: 72px;
+//#endregion
+
+.v-card {
+  box-shadow: 0px 2px 4px rgba(202, 202, 202, 0.5), 0px 1px 4px rgba(218, 218, 224, 0.4) !important;
+}
+.v-btn--outlined.primary--text {
+  border: 1px solid #d4e4fe !important;
+  font-size: 12px !important;
+}
+.v-text-field--outlined:not(.v-label--active) .v-label,
+.v-select--outlined:not(.v-label--active) .v-label{
+  font-size: 12px;
+}
